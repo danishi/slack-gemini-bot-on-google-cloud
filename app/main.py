@@ -102,7 +102,11 @@ async def handle_mention(body, say, client, logger):
         logger.exception("Gemini call failed")
         reply_text = f"Error from Gemini: {e}"
 
-    await say(reply_text, thread_ts=thread_ts)
+    await say(
+        blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": reply_text}}],
+        text=reply_text,
+        thread_ts=thread_ts,
+    )
 
 @fastapi_app.post("/slack/events")
 async def slack_events(req: Request):

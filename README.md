@@ -6,6 +6,7 @@ This repository provides a Slack bot backend implemented in Python that uses [Sl
 - Responds to `@mention` messages in Slack channels.
 - Supports text and image inputs from Slack messages. Images are fetched via authenticated URLs and sent to Gemini for multimodal understanding.
 - Maintains conversation context by retrieving prior messages in a thread and sending them as conversation history to Gemini.
+- Formats responses using Slack-compatible Markdown for rich text output.
 - FastAPI-based web server suitable for Cloud Run.
 - Deployment script for building and deploying to Cloud Run.
 
