@@ -9,6 +9,7 @@ from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from google import genai
 from google.genai import types
+from google.genai.types import Tool, GenerateContentConfig
 
 # Environment variables
 load_dotenv()
@@ -70,7 +71,29 @@ async def handle_mention(body, say, client, logger):
 
     def call_gemini() -> str:
         genai_client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
-        response = genai_client.models.generate_content(model=MODEL_NAME, contents=contents)
+        response = genai_client.models.generate_content(
+            model=MODEL_NAME,
+            contents=contents
+            config=GenerateContentConfig(
+                system_instruction="""
+                You are acting as a Slack Bot. All your responses must be formatted using Slack-compatible Markdown.  
+
+                ### Formatting Rules
+                - **Headings / emphasis**: Use `*bold*` for section titles or important words.  
+                - *Italics*: Use `_underscores_` for emphasis when needed.  
+                - Lists: Use `-` for unordered lists, and `1.` for ordered lists.  
+                - Code snippets: Use triple backticks (```) for multi-line code blocks, and backticks (`) for inline code.  
+                - Links: Use `<https://example.com|display text>` format.  
+                - Blockquotes: Use `>` at the beginning of a line.  
+
+                Always structure your response clearly, using these rules so it renders correctly in Slack.  
+                """,
+                tools=[
+                    {"url_context": {}},
+                    {"google_search": {}},
+                ],
+            )
+        )
         return response.text
 
     try:
