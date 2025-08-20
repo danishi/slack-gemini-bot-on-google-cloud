@@ -73,7 +73,7 @@ async def handle_mention(body, say, client, logger):
         genai_client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
         response = genai_client.models.generate_content(
             model=MODEL_NAME,
-            contents=contents
+            contents=contents,
             config=GenerateContentConfig(
                 system_instruction="""
                 You are acting as a Slack Bot. All your responses must be formatted using Slack-compatible Markdown.  
