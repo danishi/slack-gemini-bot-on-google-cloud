@@ -1,10 +1,12 @@
 import os
 import asyncio
+import json
 from typing import List
 
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from google import genai
@@ -18,6 +20,7 @@ SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 PROJECT_ID = os.environ.get("GOOGLE_PROJECT")
 LOCATION = os.environ.get("GOOGLE_LOCATION", "us-central1")
 MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-2.5-flash")
+ALLOWED_SLACK_WORKSPACE = os.environ.get("ALLOWED_SLACK_WORKSPACE")
 
 # Initialize Slack Bolt AsyncApp
 bolt_app = AsyncApp(token=SLACK_BOT_TOKEN, signing_secret=SLACK_SIGNING_SECRET)
@@ -106,6 +109,11 @@ async def handle_mention(body, say, client, logger):
 
 @fastapi_app.post("/slack/events")
 async def slack_events(req: Request):
+    raw_body = await req.body()
+    data = json.loads(raw_body)
+    team_id = data.get("team_id")
+    if ALLOWED_SLACK_WORKSPACE and team_id != ALLOWED_SLACK_WORKSPACE:
+        return JSONResponse(status_code=403, content={"error": "workspace_not_allowed"})
     return await handler.handle(req)
 
 @fastapi_app.get("/")
