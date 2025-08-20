@@ -16,7 +16,7 @@ SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 PROJECT_ID = os.environ.get("GOOGLE_PROJECT")
 LOCATION = os.environ.get("GOOGLE_LOCATION", "us-central1")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-1.5-flash")
+MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-2.5-flash")
 
 # Initialize Slack Bolt AsyncApp
 bolt_app = AsyncApp(token=SLACK_BOT_TOKEN, signing_secret=SLACK_SIGNING_SECRET)

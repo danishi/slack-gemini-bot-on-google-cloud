@@ -70,6 +70,3 @@ The script will:
 3. Set the required environment variables on the service.
 
 After deployment, configure the Slack app's event subscription URL to the Cloud Run service URL.
-
-## License
-[Apache-2.0](LICENSE)
