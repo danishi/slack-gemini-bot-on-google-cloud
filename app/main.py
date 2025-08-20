@@ -6,7 +6,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from slack_bolt.async_app import AsyncApp
-from slack_bolt.adapter.fastapi import AsyncSlackRequestHandler
+from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from google import genai
 from google.genai import types
 
@@ -28,23 +28,36 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
     """Fetch thread messages and build google-genai contents."""
     history = await client.conversations_replies(channel=channel, ts=thread_ts, limit=50)
     contents: List[types.Content] = []
-    async with httpx.AsyncClient() as http_client:
-        for msg in history["messages"]:
-            role = "model" if msg.get("bot_id") else "user"
+
+    import re
+    async with httpx.AsyncClient(timeout=30.0) as http_client:
+        for msg in sorted(history["messages"], key=lambda m: float(m["ts"])):
+            is_bot = bool(msg.get("bot_id") or msg.get("subtype") == "bot_message")
+            role = "model" if is_bot else "user"
             parts = []
-            text = msg.get("text")
+
+            text = msg.get("text") or ""
+            text = re.sub(r"<@[^>]+>\s*", "", text).strip()
             if text:
-                parts.append(types.Part.from_text(text))
+                parts.append(types.Part.from_text(text=text))
+
             for f in msg.get("files", []):
-                mimetype = f.get("mimetype", "")
+                mimetype = (f.get("mimetype") or "")
                 if mimetype.startswith("image/"):
                     url = f.get("url_private_download")
                     if url:
-                        resp = await http_client.get(url, headers={"Authorization": f"Bearer {SLACK_BOT_TOKEN}"})
+                        resp = await http_client.get(
+                            url,
+                            headers={"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
+                        )
                         resp.raise_for_status()
-                        parts.append(types.Part.from_bytes(resp.content, mime_type=mimetype))
+                        parts.append(types.Part.from_bytes(data=resp.content, mime_type=mimetype))
+
             if parts:
                 contents.append(types.Content(role=role, parts=parts))
+
+    if not contents:
+        contents = [types.Content(role="user", parts=[types.Part.from_text(text="(no content)")])]
     return contents
 
 @bolt_app.event("app_mention")
