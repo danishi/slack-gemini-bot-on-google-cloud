@@ -36,6 +36,7 @@ requirements.txt     # Python dependencies
    ```bash
    cp .env.example .env
    # edit .env and set your Slack and Google Cloud credentials
+   # ALLOWED_SLACK_WORKSPACE is the Slack team ID to allow requests from
    ```
 3. Run the server
    ```bash
