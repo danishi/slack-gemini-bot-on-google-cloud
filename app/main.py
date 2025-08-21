@@ -77,7 +77,10 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
     return contents
 
 @bolt_app.event("app_mention")
-async def handle_mention(body, say, client, logger):
+async def handle_mention(body, say, client, logger, ack):
+    # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
+    await ack()
+
     event = body["event"]
     channel = event["channel"]
     thread_ts = event.get("thread_ts") or event["ts"]
