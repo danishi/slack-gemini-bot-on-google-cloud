@@ -1,10 +1,10 @@
 # Slack Gemini Bot on Google Cloud
 
-This repository provides a Slack bot backend implemented in Python that uses [Slack Bolt](https://slack.dev/bolt-python) and Google Cloud's [Vertex AI Gemini](https://cloud.google.com/vertex-ai) model via the [google-genai](https://pypi.org/project/google-genai/) SDK. The bot responds to text or image messages and maintains conversation context within Slack threads. It is designed to run on [Cloud Run](https://cloud.google.com/run).
+This repository provides a Slack bot backend implemented in Python that uses [Slack Bolt](https://slack.dev/bolt-python) and Google Cloud's [Vertex AI Gemini](https://cloud.google.com/vertex-ai) model via the [google-genai](https://pypi.org/project/google-genai/) SDK. The bot responds to text, images, PDFs, plain text files, videos, and audio messages, while maintaining conversation context within Slack threads. It is designed to run on [Cloud Run](https://cloud.google.com/run).
 
 ## Features
 - Responds to `@mention` messages in Slack channels.
-- Supports text and image inputs from Slack messages. Images are fetched via authenticated URLs and sent to Gemini for multimodal understanding.
+- Supports text, image, PDF, text file, video, and audio inputs from Slack messages. Files are fetched via authenticated URLs and sent to Gemini for multimodal understanding.
 - Maintains conversation context by retrieving prior messages in a thread and sending them as conversation history to Gemini.
 - Formats responses using Slack-compatible Markdown for rich text output.
 - FastAPI-based web server suitable for Cloud Run.
