@@ -47,15 +47,27 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
 
             for f in msg.get("files", []):
                 mimetype = (f.get("mimetype") or "")
-                if mimetype.startswith("image/"):
-                    url = f.get("url_private_download")
-                    if url:
-                        resp = await http_client.get(
-                            url,
-                            headers={"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
-                        )
-                        resp.raise_for_status()
-                        parts.append(types.Part.from_bytes(data=resp.content, mime_type=mimetype))
+                url = f.get("url_private_download")
+                if not url:
+                    continue
+
+                supported = (
+                    mimetype.startswith(("image/", "video/", "audio/", "text/"))
+                    or mimetype == "application/pdf"
+                )
+                if not supported:
+                    continue
+
+                resp = await http_client.get(
+                    url,
+                    headers={"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
+                )
+                resp.raise_for_status()
+
+                if mimetype.startswith("text/"):
+                    parts.append(types.Part.from_text(text=resp.text))
+                else:
+                    parts.append(types.Part.from_bytes(data=resp.content, mime_type=mimetype))
 
             if parts:
                 contents.append(types.Content(role=role, parts=parts))
