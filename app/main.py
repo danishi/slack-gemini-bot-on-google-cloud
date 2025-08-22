@@ -76,7 +76,11 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
         contents = [types.Content(role="user", parts=[types.Part.from_text(text="(no content)")])]
     return contents
 
-async def handle_mention_lazy(body, say, client, logger):
+@bolt_app.event("app_mention")
+async def handle_mention(body, say, client, logger, ack):
+    # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
+    await ack()
+    
     event = body["event"]
     channel = event["channel"]
     thread_ts = event.get("thread_ts") or event["ts"]
@@ -121,12 +125,6 @@ async def handle_mention_lazy(body, say, client, logger):
         text=reply_text,
         thread_ts=thread_ts,
     )
-
-
-@bolt_app.event("app_mention", lazy=[handle_mention_lazy])
-async def handle_mention(body, ack):
-    # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
-    await ack()
 
 @fastapi_app.post("/slack/events")
 async def slack_events(req: Request):
