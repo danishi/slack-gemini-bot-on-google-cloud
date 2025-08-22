@@ -130,6 +130,10 @@ async def handle_mention(body, ack):
 
 @fastapi_app.post("/slack/events")
 async def slack_events(req: Request):
+    retry_num = req.headers.get("x-slack-retry-num")
+    if retry_num is not None:
+        return JSONResponse(status_code=404, content={"error": "ignored_slack_retry"})
+
     raw_body = await req.body()
     data = json.loads(raw_body)
     team_id = data.get("team_id")
