@@ -76,11 +76,7 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
         contents = [types.Content(role="user", parts=[types.Part.from_text(text="(no content)")])]
     return contents
 
-@bolt_app.event("app_mention")
-async def handle_mention(body, say, client, logger, ack):
-    # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
-    await ack()
-
+async def handle_mention_lazy(body, say, client, logger):
     event = body["event"]
     channel = event["channel"]
     thread_ts = event.get("thread_ts") or event["ts"]
@@ -94,17 +90,17 @@ async def handle_mention(body, say, client, logger, ack):
             contents=contents,
             config=GenerateContentConfig(
                 system_instruction="""
-                You are acting as a Slack Bot. All your responses must be formatted using Slack-compatible Markdown.  
+                You are acting as a Slack Bot. All your responses must be formatted using Slack-compatible Markdown.
 
                 ### Formatting Rules
-                - **Headings / emphasis**: Use `*bold*` for section titles or important words.  
-                - *Italics*: Use `_underscores_` for emphasis when needed.  
-                - Lists: Use `-` for unordered lists, and `1.` for ordered lists.  
-                - Code snippets: Use triple backticks (```) for multi-line code blocks, and backticks (`) for inline code.  
-                - Links: Use `<https://example.com|display text>` format.  
-                - Blockquotes: Use `>` at the beginning of a line.  
+                - **Headings / emphasis**: Use `*bold*` for section titles or important words.
+                - *Italics*: Use `_underscores_` for emphasis when needed.
+                - Lists: Use `-` for unordered lists, and `1.` for ordered lists.
+                - Code snippets: Use triple backticks (```) for multi-line code blocks, and backticks (`) for inline code.
+                - Links: Use `<https://example.com|display text>` format.
+                - Blockquotes: Use `>` at the beginning of a line.
 
-                Always structure your response clearly, using these rules so it renders correctly in Slack.  
+                Always structure your response clearly, using these rules so it renders correctly in Slack.
                 """,
                 tools=[
                     {"url_context": {}},
@@ -125,6 +121,12 @@ async def handle_mention(body, say, client, logger, ack):
         text=reply_text,
         thread_ts=thread_ts,
     )
+
+
+@bolt_app.event("app_mention", lazy=[handle_mention_lazy])
+async def handle_mention(body, ack):
+    # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
+    await ack()
 
 @fastapi_app.post("/slack/events")
 async def slack_events(req: Request):
