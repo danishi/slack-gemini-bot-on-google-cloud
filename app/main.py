@@ -136,7 +136,7 @@ async def slack_events(req: Request):
     data = json.loads(raw_body)
     team_id = data.get("team_id")
     if ALLOWED_SLACK_WORKSPACE and team_id != ALLOWED_SLACK_WORKSPACE:
-        return JSONResponse(status_code=403, content={"error": f"{Then deploy}:workspace_not_allowed"})
+        return JSONResponse(status_code=403, content={"error": f"{team_id}:workspace_not_allowed"})
     return await handler.handle(req)
 
 @fastapi_app.get("/")
