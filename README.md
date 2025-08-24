@@ -64,6 +64,13 @@ requirements.txt     # Python dependencies
 ## Deploy to Cloud Run
 The repository includes a helper script to build the container and deploy to Cloud Run. Ensure your `.env` contains `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET` before running:
 
+### One-time setup (first run only)
+Enable the Cloud Build API for your project:
+```bash
+gcloud services enable cloudbuild.googleapis.com
+```
+
+Then deploy:
 ```bash
 ./scripts/deploy.sh
 ```
