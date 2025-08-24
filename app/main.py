@@ -134,6 +134,10 @@ async def slack_events(req: Request):
 
     raw_body = await req.body()
     data = json.loads(raw_body)
+    challenge = data.get("challenge")
+    if challenge:
+        return JSONResponse(content={"challenge": challenge})
+
     team_id = data.get("team_id")
     if ALLOWED_SLACK_WORKSPACE and team_id != ALLOWED_SLACK_WORKSPACE:
         return JSONResponse(status_code=403, content={"error": f"{team_id}:workspace_not_allowed"})
