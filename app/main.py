@@ -11,7 +11,7 @@ from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from google import genai
 from google.genai import types
-from google.genai.types import Tool, GenerateContentConfig
+from google.genai.types import GenerateContentConfig
 
 # Environment variables
 load_dotenv()
@@ -27,6 +27,7 @@ bolt_app = AsyncApp(token=SLACK_BOT_TOKEN, signing_secret=SLACK_SIGNING_SECRET)
 handler = AsyncSlackRequestHandler(bolt_app)
 
 fastapi_app = FastAPI()
+
 
 async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> List[types.Content]:
     """Fetch thread messages and build google-genai contents."""
@@ -76,11 +77,12 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
         contents = [types.Content(role="user", parts=[types.Part.from_text(text="(no content)")])]
     return contents
 
+
 @bolt_app.event("app_mention")
 async def handle_mention(body, say, client, logger, ack):
     # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
     await ack()
-    
+
     event = body["event"]
     channel = event["channel"]
     thread_ts = event.get("thread_ts") or event["ts"]
@@ -126,6 +128,7 @@ async def handle_mention(body, say, client, logger, ack):
         thread_ts=thread_ts,
     )
 
+
 @fastapi_app.post("/slack/events")
 async def slack_events(req: Request):
     retry_num = req.headers.get("x-slack-retry-num")
@@ -142,6 +145,7 @@ async def slack_events(req: Request):
     if ALLOWED_SLACK_WORKSPACE and team_id != ALLOWED_SLACK_WORKSPACE:
         return JSONResponse(status_code=403, content={"error": f"{team_id}:workspace_not_allowed"})
     return await handler.handle(req)
+
 
 @fastapi_app.get("/")
 async def root():
