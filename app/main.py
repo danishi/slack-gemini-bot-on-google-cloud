@@ -1,7 +1,7 @@
 import os
 import asyncio
 import json
-from typing import List
+from typing import Any, List
 
 import httpx
 from dotenv import load_dotenv
@@ -29,6 +29,20 @@ handler = AsyncSlackRequestHandler(bolt_app)
 fastapi_app = FastAPI()
 
 
+def _extract_text(obj: Any) -> List[str]:
+    texts: List[str] = []
+    if isinstance(obj, dict):
+        t = obj.get("text")
+        if isinstance(t, str):
+            texts.append(t)
+        for v in obj.values():
+            texts.extend(_extract_text(v))
+    elif isinstance(obj, list):
+        for item in obj:
+            texts.extend(_extract_text(item))
+    return texts
+
+
 async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> List[types.Content]:
     """Fetch thread messages and build google-genai contents."""
     history = await client.conversations_replies(channel=channel, ts=thread_ts, limit=50)
@@ -43,6 +57,9 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
 
             text = msg.get("text") or ""
             text = re.sub(r"<@[^>]+>\s*", "", text).strip()
+            if not text:
+                text = "\n".join(_extract_text(msg.get("blocks", []))).strip()
+
             if text:
                 parts.append(types.Part.from_text(text=text))
 
