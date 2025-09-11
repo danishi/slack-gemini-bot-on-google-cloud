@@ -78,6 +78,13 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
     return contents
 
 
+def _split_text(text: str, limit: int = 3000) -> List[str]:
+    """Split text into chunks that fit within Slack's block text limit."""
+    if not text:
+        return [""]
+    return [text[i : i + limit] for i in range(0, len(text), limit)]
+
+
 @bolt_app.event("app_mention")
 async def handle_mention(body, say, client, logger, ack):
     # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
@@ -121,12 +128,19 @@ async def handle_mention(body, say, client, logger, ack):
     except Exception as e:
         logger.exception("Gemini call failed")
         reply_text = f"Error from Gemini: {e}"
-
+    chunks = _split_text(reply_text)
+    first_chunk, *rest_chunks = chunks
     await say(
-        blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": reply_text}}],
-        text=reply_text,
+        blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": first_chunk}}],
+        text=first_chunk,
         thread_ts=thread_ts,
     )
+    for chunk in rest_chunks:
+        await say(
+            blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": chunk}}],
+            text=chunk,
+            thread_ts=thread_ts,
+        )
 
 
 @fastapi_app.post("/slack/events")
