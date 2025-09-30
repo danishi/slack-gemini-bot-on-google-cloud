@@ -103,6 +103,7 @@ def _split_text(text: str, limit: int = 3000) -> List[str]:
 
 
 @bolt_app.event("app_mention")
+@bolt_app.event("message")
 async def handle_mention(body, say, client, logger, ack):
     # Ack as soon as possible to avoid Slack retries that can cause duplicated responses
     await ack()

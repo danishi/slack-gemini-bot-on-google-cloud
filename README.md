@@ -10,6 +10,7 @@ If you want to use the [Agent Development Kit](https://google.github.io/adk-docs
 
 ## Features
 - Responds to `@mention` messages in Slack channels.
+- Responds to direct messages (DMs) in Slack, enabling private one-on-one interactions with the bot.
 - Supports text, image, PDF, text file, video, and audio inputs from Slack messages. Files are fetched via authenticated URLs and sent to Gemini for multimodal understanding.
 - Maintains conversation context by retrieving prior messages in a thread and sending them as conversation history to Gemini.
 - Formats responses using Slack-compatible Markdown for rich text output.
@@ -60,10 +61,12 @@ requirements.txt     # Python dependencies
    - `im:history`
    - `mpim:history`
    - `files:read`
-3. Install the app to your workspace to obtain `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET`.
-4. Enable **Event Subscriptions** and set the Request URL to `https://<your-cloud-run-service-url>/slack/events`.
-5. Subscribe to bot events: `app_mention`.
-6. Invite the bot to channels where you want to use it.
+   - `im:write`
+3. Under **App Home**,Enable the Messages Tab in the App Home settings, and check “Allow users to send Slash commands and messages from the messages tab”.
+4. Install the app to your workspace to obtain `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET`.
+5. Enable **Event Subscriptions** and set the Request URL to `https://<your-cloud-run-service-url>/slack/events`.
+6. Subscribe to bot events: `app_mention` and `message.im`.
+7. Invite the bot to channels where you want to use it.
 
 ## Deploy to Cloud Run
 The repository includes a helper script to build the container and deploy to Cloud Run. Ensure your `.env` contains `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET` before running:
