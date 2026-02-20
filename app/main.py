@@ -135,7 +135,14 @@ async def handle_mention(body, say, client, logger, ack):
 
     event = body["event"]
     channel = event["channel"]
-    thread_ts = event.get("thread_ts") or event["ts"]
+    message_ts = event["ts"]
+    thread_ts = event.get("thread_ts") or message_ts
+
+    # Add 👀 reaction to indicate the bot is processing the message
+    try:
+        await client.reactions_add(channel=channel, name="eyes", timestamp=message_ts)
+    except Exception:
+        logger.warning("Failed to add eyes reaction", exc_info=True)
 
     contents = await _build_contents_from_thread(client, channel, thread_ts)
 
@@ -189,6 +196,12 @@ async def handle_mention(body, say, client, logger, ack):
             text=chunk,
             thread_ts=thread_ts,
         )
+
+    # Add ✅ reaction to indicate the bot has finished replying
+    try:
+        await client.reactions_add(channel=channel, name="white_check_mark", timestamp=message_ts)
+    except Exception:
+        logger.warning("Failed to add white_check_mark reaction", exc_info=True)
 
 
 @fastapi_app.post("/slack/events")
