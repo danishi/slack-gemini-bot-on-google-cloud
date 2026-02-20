@@ -49,8 +49,27 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
     contents: List[types.Content] = []
 
     import re
+
+    # Resolve display names for all unique users in the thread
+    user_names: dict[str, str] = {}
+    messages = sorted(history["messages"], key=lambda m: float(m["ts"]))
+    for msg in messages:
+        uid = msg.get("user")
+        if uid and uid not in user_names:
+            try:
+                info = await client.users_info(user=uid)
+                profile = info["user"].get("profile", {})
+                user_names[uid] = (
+                    profile.get("display_name")
+                    or profile.get("real_name")
+                    or info["user"].get("real_name")
+                    or uid
+                )
+            except Exception:
+                user_names[uid] = uid
+
     async with httpx.AsyncClient(timeout=30.0) as http_client:
-        for msg in sorted(history["messages"], key=lambda m: float(m["ts"])):
+        for msg in messages:
             is_bot = bool(msg.get("bot_id") or msg.get("subtype") == "bot_message")
             role = "model" if is_bot else "user"
             parts = []
@@ -59,6 +78,12 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
             text = re.sub(r"<@[^>]+>\s*", "", text).strip()
             if not text:
                 text = "\n".join(_extract_text(msg.get("blocks", []))).strip()
+
+            # Prefix user messages with the sender's display name
+            if text and not is_bot:
+                uid = msg.get("user", "")
+                name = user_names.get(uid, uid)
+                text = f"[{name}]: {text}"
 
             if text:
                 parts.append(types.Part.from_text(text=text))
@@ -122,6 +147,11 @@ async def handle_mention(body, say, client, logger, ack):
             config=GenerateContentConfig(
                 system_instruction="""
                 You are acting as a Slack Bot. All your responses must be formatted using Slack-compatible Markdown.
+
+                ### Conversation Context
+                - Messages from Slack users are prefixed with `[DisplayName]: ` so you can identify who said what.
+                - Multiple different users may participate in the same thread. Pay attention to the display names to distinguish between them.
+                - When replying, consider the context of who you are responding to and maintain coherent conversations with each participant.
 
                 ### Formatting Rules
                 - **Headings / emphasis**: Use `*bold*` for section titles or important words.
