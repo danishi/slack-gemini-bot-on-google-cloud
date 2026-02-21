@@ -63,10 +63,10 @@ async def _build_contents_from_thread(client, channel: str, thread_ts: str) -> L
                     profile.get("display_name")
                     or profile.get("real_name")
                     or info["user"].get("real_name")
-                    or uid
+                    or f"<@{uid}>"
                 )
             except Exception:
-                user_names[uid] = uid
+                user_names[uid] = f"<@{uid}>"
 
     async with httpx.AsyncClient(timeout=30.0) as http_client:
         for msg in messages:
