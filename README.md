@@ -8,7 +8,7 @@ This repository provides a Slack bot backend implemented in Python that uses [Sl
 
 If you want to use the [Agent Development Kit](https://google.github.io/adk-docs/), please refer to [this repository](https://github.com/danishi/slack-bot-adk-python-cloudrun)💡
 
-If you want to use [Nano Banana](https://github.com/danishi/slack-nano-banana-bot-on-google-cloud), please refer to [this repository](https://github.com/danishi/slack-nano-banana-bot-on-google-cloud)🍌
+If you want to use Nano Banana, please refer to [this repository](https://github.com/danishi/slack-nano-banana-bot-on-google-cloud)🍌
 
 ## Features
 - Responds to `@mention` messages in Slack channels.
