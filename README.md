@@ -45,15 +45,8 @@ requirements.txt     # Python dependencies
    ```bash
    cp .env.example .env
    # edit .env and set your Slack and Google Cloud credentials
-   # ALLOWED_SLACK_WORKSPACES is a comma-separated list of Slack team IDs to allow requests from
+   # ALLOWED_SLACK_WORKSPACE is the Slack team ID to allow requests from
    ```
-
-   **How to find your Slack Team ID (`ALLOWED_SLACK_WORKSPACES`)**
-   1. Open your Slack workspace in a browser.
-   2. The Team ID is shown in the URL: `https://app.slack.com/client/<TEAM_ID>/...` (starts with `T`).
-   3. Alternatively, go to your [Slack workspace settings](https://app.slack.com/plans) and find the **Workspace ID** in the page or URL.
-   4. To allow multiple workspaces, set comma-separated values: `ALLOWED_SLACK_WORKSPACES="T0123456789,T9876543210"`
-   5. If left empty, requests from all workspaces are accepted.
 3. Run the server
    ```bash
    uvicorn app.main:fastapi_app --host 0.0.0.0 --port 8080 --reload
