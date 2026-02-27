@@ -21,6 +21,8 @@ PROJECT_ID = os.environ.get("GOOGLE_PROJECT")
 LOCATION = os.environ.get("MODEL_LOCATION", "global")
 MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-3.1-pro-preview")
 ALLOWED_SLACK_WORKSPACE = os.environ.get("ALLOWED_SLACK_WORKSPACE")
+REACTION_PROCESSING = os.environ.get("REACTION_PROCESSING", "eyes")
+REACTION_COMPLETED = os.environ.get("REACTION_COMPLETED", "white_check_mark")
 
 # Initialize Slack Bolt AsyncApp
 bolt_app = AsyncApp(token=SLACK_BOT_TOKEN, signing_secret=SLACK_SIGNING_SECRET)
@@ -140,7 +142,7 @@ async def handle_mention(body, say, client, logger, ack):
 
     # Add 👀 reaction to indicate the bot is processing the message
     try:
-        await client.reactions_add(channel=channel, name="eyes", timestamp=message_ts)
+        await client.reactions_add(channel=channel, name=REACTION_PROCESSING, timestamp=message_ts)
     except Exception:
         logger.warning("Failed to add eyes reaction", exc_info=True)
 
@@ -199,7 +201,7 @@ async def handle_mention(body, say, client, logger, ack):
 
     # Add ✅ reaction to indicate the bot has finished replying
     try:
-        await client.reactions_add(channel=channel, name="white_check_mark", timestamp=message_ts)
+        await client.reactions_add(channel=channel, name=REACTION_COMPLETED, timestamp=message_ts)
     except Exception:
         logger.warning("Failed to add white_check_mark reaction", exc_info=True)
 
